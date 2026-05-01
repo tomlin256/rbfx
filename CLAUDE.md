@@ -32,6 +32,14 @@ cmake -S . -B build \
 cmake --build build --parallel $(sysctl -n hw.logicalcpu)
 ```
 
+**Install** (required before any downstream project can use rbfx):
+
+```bash
+cmake --install build
+```
+
+This populates `build/install/`. The build-tree config files are incomplete — `Modules/PlatformTag.cmake` is missing from the build tree and `find_package(Urho3D)` will fail unless you point at the install tree.
+
 **Outputs** (in `build/`):
 
 | Path | Description |
@@ -40,3 +48,45 @@ cmake --build build --parallel $(sysctl -n hw.logicalcpu)
 | `bin/RelWithDebInfo/PackageTool` | Asset packager |
 | `bin/RelWithDebInfo/SpritePacker` | Sprite atlas tool |
 | `bin/RelWithDebInfo/RampGenerator` | Gradient ramp tool |
+
+---
+
+## Consuming rbfx from a downstream CMake project
+
+Set `CMAKE_PREFIX_PATH` to the **install** tree, not the build tree:
+
+```
+CMAKE_PREFIX_PATH = /path/to/rbfx/build/install
+```
+
+The CMake config is installed at `<install>/share/Urho3D/CMake/` (not `share/CMake/Urho3D/`).
+
+**Target name:** `Urho3D` — not `Urho3D::Urho3D`. There is no namespaced alias.
+
+**Include directories:** propagated automatically via the `Urho3D` target. Do not use `${URHO3D_INCLUDE_DIRS}` — it is not set by the config.
+
+```cmake
+find_package(Urho3D REQUIRED CONFIG)
+target_link_libraries(mytarget PRIVATE Urho3D)   # includes come for free
+```
+
+---
+
+## Known build-tree side effects
+
+Bison regenerates two swig parser files during the build, leaving them dirty in git:
+
+```
+Source/ThirdParty/swig/Source/CParse/parser.c
+Source/ThirdParty/swig/Source/CParse/parser.h
+```
+
+Suppress with:
+
+```bash
+git update-index --skip-worktree \
+  Source/ThirdParty/swig/Source/CParse/parser.c \
+  Source/ThirdParty/swig/Source/CParse/parser.h
+```
+
+This is local-only and must be reapplied after a fresh clone.
