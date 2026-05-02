@@ -38,27 +38,27 @@ Optional experimental C# bindings are provided via SWIG.
 | [`Graphics/`](Source/Urho3D/Graphics/CLAUDE.md) | Drawables (`StaticModel`, `AnimatedModel`, `Terrain`, `BillboardSet`, `ParticleEmitter`, …), `Material`, `Shader`, `Texture*`, `Camera`, `Viewport`, `Renderer`, animation system |
 | [`RenderAPI/`](Source/Urho3D/RenderAPI/CLAUDE.md) | Low-level GPU abstraction over Diligent Engine: `RenderDevice`, `RawBuffer`/`RawTexture`, `PipelineState`, `DrawCommandQueue`, `RenderContext` |
 | [`RenderPipeline/`](Source/Urho3D/RenderPipeline/CLAUDE.md) | High-level render pipeline: batch composition, `DrawableProcessor`, `LightProcessor`, shadow maps, render passes, `DefaultRenderPipeline`, `StereoRenderPipeline` |
-| `Audio/` | Sound and music playback |
-| `Input/` | Keyboard, mouse, gamepad, touch input |
+| [`Audio/`](Source/Urho3D/Audio/CLAUDE.md) | Sound playback: `Audio`, `Sound`, `SoundSource`/`SoundSource3D`, streaming, microphone |
+| [`Input/`](Source/Urho3D/Input/CLAUDE.md) | Keyboard, mouse, gamepad, touch: `Input`, `InputMap`, `FreeFlyController`, helper adapters |
 | [`Network/`](Source/Urho3D/Network/CLAUDE.md) | WebRTC transport, `Connection`, clock sync (`ClockSynchronizer`), LAN discovery, protocol messages |
 | [`Replica/`](Source/Urho3D/Replica/CLAUDE.md) | Network replication: `NetworkObject`, `ReplicationManager`, client/server roles, prediction (`PredictedKinematicController`), `ReplicatedTransform/Animation` |
-| `Navigation/` | Navmesh pathfinding via Recast/Detour |
+| [`Navigation/`](Source/Urho3D/Navigation/CLAUDE.md) | Navmesh pathfinding: `NavigationMesh`, `DynamicNavigationMesh`, `CrowdManager`/`CrowdAgent`, `Obstacle`, `OffMeshConnection` |
 | [`Physics/`](Source/Urho3D/Physics/CLAUDE.md) | 3-D rigid-body physics via Bullet: `PhysicsWorld`, `RigidBody`, `CollisionShape`, `Constraint`, `KinematicCharacterController`, `RaycastVehicle` |
 | [`Physics2D/`](Source/Urho3D/Physics2D/CLAUDE.md) | 2-D physics via Box2D: `PhysicsWorld2D`, `RigidBody2D`, collision shapes, 11 constraint types |
-| `IK/` | Inverse kinematics: arm, leg, head, spine, limb solvers |
+| [`IK/`](Source/Urho3D/IK/CLAUDE.md) | Inverse kinematics: `IKSolver`, `IKArmSolver`, `IKLegSolver`, `IKHeadSolver`, `IKSpineSolver`, `IKStickTargets` |
 | [`Actions/`](Source/Urho3D/Actions/CLAUDE.md) | Cocos2D-style action system: `ActionManager`, `ActionBuilder`, sequences, easing, attribute tweens, callbacks |
-| `Glow/` | Offline lightmap baking using Intel Embree ray tracing |
-| `Particles/` | CPU particle system |
+| [`Glow/`](Source/Urho3D/Glow/CLAUDE.md) | Offline lightmap baking: `IncrementalLightBaker`, UV charting, Embree ray tracing, denoising, seam stitching |
+| [`Particles/`](Source/Urho3D/Particles/CLAUDE.md) | Graph-based particle system: `ParticleGraphEmitter`, `ParticleGraphEffect`, emit/init/update graphs |
 | [`UI/`](Source/Urho3D/UI/CLAUDE.md) | Built-in retained-mode widget tree: `UIElement`, `Button`, `Text`, `Window`, `ListView`, XML layouts, style sheets |
 | [`RmlUI/`](Source/Urho3D/RmlUI/CLAUDE.md) | Declarative HTML/CSS UI via RmlUi: `RmlUI`, `RmlUIComponent`, data bindings, `.rml` documents |
 | [`SystemUI/`](Source/Urho3D/SystemUI/CLAUDE.md) | ImGui immediate-mode debug/editor UI: `SystemUI`, `ImGuiDiligentRendererEx`, inspector widgets |
 | `Script/` | Gameplay scripting: `DynamicModule`, `PluginApplication`, `ScriptBundlePlugin` |
 | `Plugins/` | `PluginManager` — hot-reloadable gameplay modules |
-| `CSharp/` | Optional C# bindings: SWIG definitions, codegen, `Urho3DNet` .csproj |
-| `XR/` | OpenXR VR/AR: `VirtualReality`, `OpenXR`, `VRRig` |
+| [`CSharp/`](Source/Urho3D/CSharp/CLAUDE.md) | Optional C# bindings via SWIG: directors, `PluginApplication`, `[LoadablePlugin]`, `Urho3DNet` |
+| [`XR/`](Source/Urho3D/XR/CLAUDE.md) | OpenXR VR/AR: `VirtualReality`, `OpenXR`, `VRRig`, action bindings, `VRUtils`, stereo rendering |
 | [`Urho2D/`](Source/Urho3D/Urho2D/CLAUDE.md) | 2-D sprites (`StaticSprite2D`, `AnimatedSprite2D`), tilemaps, Spriter/Spine animation, `Renderer2D` |
-| `Container/` | Custom container types (EASTL-backed) |
-| `Math/` | Vector, matrix, quaternion, ray, frustum, BoundingBox, color math |
+| [`Container/`](Source/Urho3D/Container/CLAUDE.md) | Custom containers: `ByteVector`, `Array2D`, `FlagSet`, `MultiVector`, `RefCounted`, `SharedPtr`/`WeakPtr`, `IndexAllocator` |
+| [`Math/`](Source/Urho3D/Math/CLAUDE.md) | Vector, matrix, quaternion, ray, frustum, `BoundingBox`, `Color`, `StringHash`, `AreaAllocator`, easing |
 | `Utility/` | Miscellaneous engine utilities |
 | [`Shader/`](Source/Urho3D/Shader/CLAUDE.md) | GLSL→SPIR-V translation (`ShaderTranslator`), SPIR-V optimisation, HLSL/GLSL cross-compilation, bytecode cache |
 
