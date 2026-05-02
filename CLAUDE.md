@@ -90,3 +90,33 @@ git update-index --skip-worktree \
 ```
 
 This is local-only and must be reapplied after a fresh clone.
+
+---
+
+## Local patch: ImGui crash after HiDPI swap chain resize (macOS Retina)
+
+**File:** `Source/Urho3D/SystemUI/ImGuiDiligentRendererEx.cpp`
+
+**Symptom:** Segfault in `ImGuiDiligentRendererEx::RenderDrawData` on the first frame after the swap chain resizes to the Retina resolution (e.g. 5760×3240).
+
+**Root cause:** `NewFrame()` is called in `SystemUI::OnInputEnd` before the swap chain is resized to the actual HiDPI dimensions. The primary window never updates `m_RenderSurfaceWidth`/`m_RenderSurfaceHeight` before rendering, so the Diligent projection matrix is built from stale (or zero) dimensions. Secondary windows already do this correctly in `RenderWindow()`.
+
+**Fix:** In `ImGuiDiligentRendererEx::RenderDrawData`, call `Diligent::ImGuiDiligentRenderer::NewFrame()` with the current swap chain dimensions immediately before rendering — mirroring what `RenderWindow()` already does for secondary viewports:
+
+```cpp
+void ImGuiDiligentRendererEx::RenderDrawData(ImDrawData* drawData)
+{
+    const RenderScope renderScope(renderDevice_->GetRenderContext(), "ImGUI: Render main viewport");
+
+    // Sync render surface dimensions with the current swap chain before rendering.
+    // The swap chain may have been resized (e.g. HiDPI/Retina) after NewFrame() was called
+    // in OnInputEnd, leaving m_RenderSurfaceWidth/Height stale and the projection matrix
+    // degenerate. Secondary windows do this correctly in RenderWindow(); mirror that here.
+    const Diligent::SwapChainDesc& swapChainDesc = renderDevice_->GetSwapChain()->GetDesc();
+    Diligent::ImGuiDiligentRenderer::NewFrame(swapChainDesc.Width, swapChainDesc.Height, swapChainDesc.PreTransform);
+
+    RenderDrawDataWith(drawData, primaryPipelineState_);
+}
+```
+
+This patch is already applied to the local tree.
