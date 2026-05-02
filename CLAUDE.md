@@ -49,9 +49,9 @@ Optional experimental C# bindings are provided via SWIG.
 | [`Actions/`](Source/Urho3D/Actions/CLAUDE.md) | Cocos2D-style action system: `ActionManager`, `ActionBuilder`, sequences, easing, attribute tweens, callbacks |
 | `Glow/` | Offline lightmap baking using Intel Embree ray tracing |
 | `Particles/` | CPU particle system |
-| `UI/` | Built-in 2-D immediate/retained UI |
-| `RmlUI/` | Declarative HTML/CSS-like UI via RmlUi library |
-| `SystemUI/` | ImGui-based in-engine debug and editor UI, `ImGuiDiligentRendererEx` |
+| [`UI/`](Source/Urho3D/UI/CLAUDE.md) | Built-in retained-mode widget tree: `UIElement`, `Button`, `Text`, `Window`, `ListView`, XML layouts, style sheets |
+| [`RmlUI/`](Source/Urho3D/RmlUI/CLAUDE.md) | Declarative HTML/CSS UI via RmlUi: `RmlUI`, `RmlUIComponent`, data bindings, `.rml` documents |
+| [`SystemUI/`](Source/Urho3D/SystemUI/CLAUDE.md) | ImGui immediate-mode debug/editor UI: `SystemUI`, `ImGuiDiligentRendererEx`, inspector widgets |
 | `Script/` | Gameplay scripting: `DynamicModule`, `PluginApplication`, `ScriptBundlePlugin` |
 | `Plugins/` | `PluginManager` — hot-reloadable gameplay modules |
 | `CSharp/` | Optional C# bindings: SWIG definitions, codegen, `Urho3DNet` .csproj |
@@ -60,7 +60,7 @@ Optional experimental C# bindings are provided via SWIG.
 | `Container/` | Custom container types (EASTL-backed) |
 | `Math/` | Vector, matrix, quaternion, ray, frustum, BoundingBox, color math |
 | `Utility/` | Miscellaneous engine utilities |
-| `Shader/` | Shader preprocessor / include resolution |
+| [`Shader/`](Source/Urho3D/Shader/CLAUDE.md) | GLSL→SPIR-V translation (`ShaderTranslator`), SPIR-V optimisation, HLSL/GLSL cross-compilation, bytecode cache |
 
 ---
 
