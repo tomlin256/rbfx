@@ -34,7 +34,7 @@ Optional experimental C# bindings are provided via SWIG.
 | [`Core/`](Source/Urho3D/Core/CLAUDE.md) | Object model (`Object`, `Context`), reflection, signals, work queue, `Variant`, threading, profiler, timer |
 | [`Scene/`](Source/Urho3D/Core/CLAUDE.md) | `Node`/`Component` scene graph, serialization, prefabs, `ValueAnimation`, `Animatable` — documented with Core above |
 | `IO/` | Virtual filesystem, `File`, logging (`Log`), archives (binary/JSON/base64), compression, file watcher |
-| `Resource/` | `ResourceCache`, `ResourceEvents`, resource hot-reload |
+| [`Resource/`](Source/Urho3D/Resource/CLAUDE.md) | `ResourceCache`, `VirtualFileSystem`, mount points, async loading, hot-reload |
 | [`Graphics/`](Source/Urho3D/Graphics/CLAUDE.md) | Drawables (`StaticModel`, `AnimatedModel`, `Terrain`, `BillboardSet`, `ParticleEmitter`, …), `Material`, `Shader`, `Texture*`, `Camera`, `Viewport`, `Renderer`, animation system |
 | [`RenderAPI/`](Source/Urho3D/RenderAPI/CLAUDE.md) | Low-level GPU abstraction over Diligent Engine: `RenderDevice`, `RawBuffer`/`RawTexture`, `PipelineState`, `DrawCommandQueue`, `RenderContext` |
 | [`RenderPipeline/`](Source/Urho3D/RenderPipeline/CLAUDE.md) | High-level render pipeline: batch composition, `DrawableProcessor`, `LightProcessor`, shadow maps, render passes, `DefaultRenderPipeline`, `StereoRenderPipeline` |
@@ -43,10 +43,10 @@ Optional experimental C# bindings are provided via SWIG.
 | [`Network/`](Source/Urho3D/Network/CLAUDE.md) | WebRTC transport, `Connection`, clock sync (`ClockSynchronizer`), LAN discovery, protocol messages |
 | [`Replica/`](Source/Urho3D/Replica/CLAUDE.md) | Network replication: `NetworkObject`, `ReplicationManager`, client/server roles, prediction (`PredictedKinematicController`), `ReplicatedTransform/Animation` |
 | `Navigation/` | Navmesh pathfinding via Recast/Detour |
-| `Physics/` | 3-D rigid-body physics via Bullet |
-| `Physics2D/` | 2-D physics via Box2D |
+| [`Physics/`](Source/Urho3D/Physics/CLAUDE.md) | 3-D rigid-body physics via Bullet: `PhysicsWorld`, `RigidBody`, `CollisionShape`, `Constraint`, `KinematicCharacterController`, `RaycastVehicle` |
+| [`Physics2D/`](Source/Urho3D/Physics2D/CLAUDE.md) | 2-D physics via Box2D: `PhysicsWorld2D`, `RigidBody2D`, collision shapes, 11 constraint types |
 | `IK/` | Inverse kinematics: arm, leg, head, spine, limb solvers |
-| `Actions/` | Cocos2D-style action system: sequences, easing, attribute tweens |
+| [`Actions/`](Source/Urho3D/Actions/CLAUDE.md) | Cocos2D-style action system: `ActionManager`, `ActionBuilder`, sequences, easing, attribute tweens, callbacks |
 | `Glow/` | Offline lightmap baking using Intel Embree ray tracing |
 | `Particles/` | CPU particle system |
 | `UI/` | Built-in 2-D immediate/retained UI |
@@ -56,7 +56,7 @@ Optional experimental C# bindings are provided via SWIG.
 | `Plugins/` | `PluginManager` — hot-reloadable gameplay modules |
 | `CSharp/` | Optional C# bindings: SWIG definitions, codegen, `Urho3DNet` .csproj |
 | `XR/` | OpenXR VR/AR: `VirtualReality`, `OpenXR`, `VRRig` |
-| `Urho2D/` | 2-D sprites, tilemaps, physics integration |
+| [`Urho2D/`](Source/Urho3D/Urho2D/CLAUDE.md) | 2-D sprites (`StaticSprite2D`, `AnimatedSprite2D`), tilemaps, Spriter/Spine animation, `Renderer2D` |
 | `Container/` | Custom container types (EASTL-backed) |
 | `Math/` | Vector, matrix, quaternion, ray, frustum, BoundingBox, color math |
 | `Utility/` | Miscellaneous engine utilities |
