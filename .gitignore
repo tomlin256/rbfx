@@ -74,6 +74,7 @@ captures/
 
 # VSCode project settings
 /build/*
+/build-debug/*
 
 # Android output directories
 gradle*
