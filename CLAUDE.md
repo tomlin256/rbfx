@@ -123,7 +123,7 @@ brew install ninja
 ```bash
 cmake -S . -B build \
   -G Ninja \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_BUILD_TYPE=Debug \
   -DBUILD_SHARED_LIBS=OFF \
   -DURHO3D_SAMPLES=OFF \
   -DURHO3D_TESTING=OFF \
