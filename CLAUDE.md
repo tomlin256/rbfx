@@ -110,7 +110,39 @@ The Editor is built as a separate executable using the engine as a library. Key 
 
 ## Building on macOS (Command Line Tools only, no full Xcode)
 
-The CMakePresets.json targets require the Xcode generator — they cannot be used with CLT-only installs. Build manually instead.
+The presets in `CMakePresets.json` for macOS hardcode `"generator": "Xcode"` and cannot be used with a CLT-only install. `CMakeUserPresets.json` (not committed, gitignored) lets you define local presets that inherit from the project presets and override the generator. For example, inheriting from `macos-clang-arm64-lib` and setting `"generator": "Ninja Multi-Config"` gives you the full feature set with Ninja:
+
+```json
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "macos-ninja-arm64-lib",
+      "displayName": "macOS arm64 lib (Ninja Multi-Config)",
+      "inherits": "macos-clang-arm64-lib",
+      "generator": "Ninja Multi-Config",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ]
+}
+```
+
+### Using VSCode CMake Tools
+
+CMake Tools reads `CMakeUserPresets.json` automatically. Point it at your Ninja preset via `.vscode/settings.json`:
+
+```json
+{
+  "cmake.configurePreset": "macos-ninja-arm64-lib",
+  "cmake.buildPreset": "macos-ninja-arm64-lib-debug"
+}
+```
+
+If CMake Tools still tries to use the Xcode generator (stale cached state), run **CMake: Reset CMake Tools Extension State (For This Workspace)** from the command palette, then reconfigure.
+
+### Manual command-line build
 
 **Prerequisites:**
 
