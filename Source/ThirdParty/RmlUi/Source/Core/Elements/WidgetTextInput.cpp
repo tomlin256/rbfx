@@ -554,6 +554,9 @@ void WidgetTextInput::ProcessEvent(Event& event)
 	{
 		if (event.GetTargetElement() == parent)
 		{
+			if (lines.empty())
+				break;
+
 			Vector2f mouse_position = Vector2f(event.GetParameter<float>("mouse_x", 0), event.GetParameter<float>("mouse_y", 0));
 			mouse_position -= text_element->GetAbsoluteOffset();
 
