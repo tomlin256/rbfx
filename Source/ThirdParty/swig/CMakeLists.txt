@@ -63,10 +63,18 @@ if (BISON_FOUND)
     set (BISON_NO_COLORS "--color=no")
   endif ()
   bison_target(SWIG ${CMAKE_CURRENT_SOURCE_DIR}/Source/CParse/parser.y ${CMAKE_CURRENT_SOURCE_DIR}/Source/CParse/parser.c COMPILE_FLAGS "-y -d --no-lines ${BISON_NO_COLORS}")
+elseif (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Source/CParse/parser.c)
+  message(FATAL_ERROR "Bison not found and Source/ThirdParty/swig/Source/CParse/parser.c does not exist. "
+    "Install bison (brew install bison) or run: "
+    "bison -y -d --no-lines -o Source/CParse/parser.c Source/CParse/parser.y "
+    "in Source/ThirdParty/swig/")
 endif ()
 
 file (GLOB_RECURSE SWIG_SOURCES Source/*.c Source/*.cxx Source/*.h)
-add_executable(swig ${SWIG_SOURCES})
+# parser.c may not exist at configure time when bison generates it at build time.
+# Add BISON_SWIG_OUTPUTS explicitly so cmake tracks the bison→compile dependency.
+list(FILTER SWIG_SOURCES EXCLUDE REGEX ".*[/\\\\]parser\\.c$")
+add_executable(swig ${SWIG_SOURCES} ${BISON_SWIG_OUTPUTS})
 target_link_libraries(swig PUBLIC pcre)
 target_include_directories(swig PRIVATE Source/CParse Source/DOH Source/Include Source/Modules Source/Preprocessor Source/Swig ${CMAKE_CURRENT_BINARY_DIR})
 
