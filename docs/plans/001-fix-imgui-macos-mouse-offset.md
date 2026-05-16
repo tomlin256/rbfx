@@ -1,6 +1,6 @@
 # Plan 001 — Fix ImGui macOS Mouse Coordinate Offset
 
-**Status:** Draft  
+**Status:** Option 2 applied — pending verification  
 **Symptom:** ImGui windows jump ~20 px when drag begins; resize cursor activates ~20 px north of the actual window edge on macOS Retina.
 
 ---
