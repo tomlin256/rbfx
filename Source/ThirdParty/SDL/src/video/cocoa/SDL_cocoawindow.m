@@ -254,7 +254,7 @@ static Uint32 s_moveHack;
 
 static void ConvertNSRect(NSScreen *screen, BOOL fullscreen, NSRect *r)
 {
-    r->origin.y = (CGFloat)[screen frame].size.height - r->origin.y - r->size.height;
+    r->origin.y = CGDisplayPixelsHigh(kCGDirectMainDisplay) - r->origin.y - r->size.height;
 }
 
 static void
