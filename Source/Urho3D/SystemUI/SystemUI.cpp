@@ -266,6 +266,15 @@ void SystemUI::OnInputEnd()
     impl_->NewFrame();
     ImGui_ImplSDL2_NewFrame();
 
+    {
+        int mx, my;
+        SDL_GetMouseState(&mx, &my);
+        // SDL_GetWindowPosition returns wrong Y on macOS (tracks window at 0,0
+        // even when it isn't). Override the position UpdateMouseData queued using
+        // SDL_GetMouseState which is always client-area relative.
+        ui::GetIO().AddMousePosEvent(float(mx), float(my));
+    }
+
     ui::NewFrame();
 
     if (!input->IsMouseVisible())
