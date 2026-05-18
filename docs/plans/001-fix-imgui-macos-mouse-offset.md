@@ -1,6 +1,6 @@
 # Plan 001 — Fix ImGui macOS Mouse Coordinate Offset
 
-**Status:** Option 1 applied — pending behavioural verification  
+**Status:** Option 1 applied — drag jump confirmed fixed  
 **Symptom:** ImGui windows jump ~39 px when drag begins; resize cursor activates ~39 px north of the actual window edge on macOS Retina.
 
 ---
@@ -165,7 +165,7 @@ r->origin.y = (CGFloat)[screen frame].size.height - r->origin.y - r->size.height
 - `Source/Urho3D/SystemUI/SystemUI.cpp`
 
 **Commit:** `833e41f7c` on branch `jumping-window-bug`  
-**Done when:** Drag jump and premature resize cursor are gone on macOS Retina. (**Pending behavioural verification.**)  
+**Done when:** Drag jump and premature resize cursor are gone on macOS Retina. (**Verified 2026-05-18 — drag jump is fixed.**)  
 **Tests:** See Verification section.
 
 ### Step 2 (optional) — Apply Option 1b (ViewportsEnable guard)
