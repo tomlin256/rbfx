@@ -273,6 +273,10 @@ void SystemUI::OnInputEnd()
         const ImVec2 qpos = ui::GetIO().MousePos;
         URHO3D_LOGDEBUG("Mouse: client=({},{})  winPos=({},{})  imgui=({},{})",
             mx, my, wx, wy, (int)qpos.x, (int)qpos.y);
+        // SDL_GetWindowPosition returns wrong Y on macOS (tracks window at 0,0
+        // even when it isn't). Override the position UpdateMouseData queued using
+        // SDL_GetMouseState which is always client-area relative.
+        ui::GetIO().AddMousePosEvent(float(mx), float(my));
     }
 
     ui::NewFrame();
