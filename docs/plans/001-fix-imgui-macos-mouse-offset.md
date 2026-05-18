@@ -1,7 +1,7 @@
 # Plan 001 — Fix ImGui macOS Mouse Coordinate Offset
 
-**Status:** Option 2 applied — pending verification  
-**Symptom:** ImGui windows jump ~20 px when drag begins; resize cursor activates ~20 px north of the actual window edge on macOS Retina.
+**Status:** Option 1 applied — pending behavioural verification  
+**Symptom:** ImGui windows jump ~39 px when drag begins; resize cursor activates ~39 px north of the actual window edge on macOS Retina.
 
 ---
 
@@ -52,16 +52,29 @@ static void ConvertNSRect(NSScreen *screen, BOOL fullscreen, NSRect *r)
 `CGDisplayPixelsHigh(kCGDirectMainDisplay)` returns **physical pixels** (hardware resolution).  
 Cocoa `NSRect` coordinates are in **logical points** (physical ÷ backingScaleFactor).
 
-On a Retina display these units differ, so the Y-flip formula mixes them. The resulting window Y is incorrect by `physicalHeight − logicalHeight` points. Depending on the display configuration and current window position this residual lands in the 15–28 px range — matching the observed symptom.
+On a Retina display these units differ, so the Y-flip formula mixes them. This was the initial hypothesis for the offset source.
+
+**Diagnostic finding (2026-05-18):** Instrumentation added to `SystemUI::OnInputEnd` (after `ImGui_ImplSDL2_NewFrame`) and to `ConvertNSRect` revealed the actual picture:
+
+```
+Mouse: client=(408,351)  winPos=(0,0)  imgui=(408,390)
+```
+
+- `SDL_GetWindowPosition` returns **(0, 0)** even when the window is visibly not at the screen origin.
+- ImGui's `UpdateMouseData` computes `global_mouse − winPos = (408,390) − (0,0) = (408,390)`.
+- `SDL_GetMouseState` (client-area relative) returns **(408, 351)**.
+- Delta = **39 px** — the actual window Y on screen (menu bar + window decoration).
+
+SDL caches the window position in `sdlwindow->x/y`. On macOS these appear to be initialised or maintained incorrectly so that `SDL_GetWindowPosition` consistently returns (0, 0) regardless of where the window actually sits. The `ConvertNSRect` unit-mismatch bug (physical vs. logical pixels) is a real and separate issue in the vendored SDL, but it does not explain the (0, 0) result — the bug manifests in a different way. Option 2 below still applies as a long-term SDL fix.
 
 ### Why this manifests as a drag jump
 
 | Phase | Active path | Coordinates |
 |---|---|---|
-| Mouse idle (no buttons held) | Path B — `SDL_GetGlobalMouseState − SDL_GetWindowPosition` | Wrong by ~titlebar height |
+| Mouse idle (no buttons held) | Path B — `SDL_GetGlobalMouseState − SDL_GetWindowPosition` | Wrong by window Y (~39 px) |
 | Mouse-down | Path B still | Wrong position stored as drag origin |
 | First SDL_MOUSEMOTION after click | Path A — `event->motion.x/y` | Correct client-area coords |
-| ImGui sees | Position jump of ~20 px | Window snaps |
+| ImGui sees | Position jump of ~39 px | Window snaps |
 
 The resize-cursor symptom is the same offset: ImGui's hit-test region is shifted north because its idea of the cursor Y is wrong at rest.
 
@@ -146,14 +159,14 @@ r->origin.y = (CGFloat)[screen frame].size.height - r->origin.y - r->size.height
 
 > Each step ends with a checkpoint commit. Steps 1–2 are independent of each other.
 
-### Step 1 — Apply Option 1 (SystemUI.cpp workaround)
+### Step 1 — Apply Option 1 (SystemUI.cpp workaround) ✓ Applied
 
 **Files changed:**
 - `Source/Urho3D/SystemUI/SystemUI.cpp`
 
-**Done when:** Drag jump and premature resize cursor are gone on macOS Retina.  
-**Tests:** See Verification section.  
-**Commit message:** `fix: override ImGui fallback mouse position with SDL client-area coords on macOS`
+**Commit:** `833e41f7c` on branch `jumping-window-bug`  
+**Done when:** Drag jump and premature resize cursor are gone on macOS Retina. (**Pending behavioural verification.**)  
+**Tests:** See Verification section.
 
 ### Step 2 (optional) — Apply Option 1b (ViewportsEnable guard)
 
@@ -169,6 +182,8 @@ Only needed if the project uses `ImGuiConfigFlags_ViewportsEnable`.
 ### Step 3 (optional, long-term) — Apply Option 2 (SDL ConvertNSRect fix)
 
 Evaluate after Step 1 is confirmed stable. Apply only if vendored SDL is not planned to be upgraded.
+
+**Note:** During investigation (2026-05-18) the ConvertNSRect patch was prototyped on `lazersquad` and then reverted. Diagnostic logs showed `winPos=(0,0)` even with the patch in place, confirming the ConvertNSRect unit-mismatch is a separate latent bug that does not cause the (0,0) return value observed here. The ConvertNSRect fix remains a valid correctness improvement for multi-monitor / non-primary-display scenarios but is not required to resolve this ticket.
 
 **Files changed:**
 - `Source/ThirdParty/SDL/src/video/cocoa/SDL_cocoawindow.m`
@@ -186,7 +201,7 @@ Evaluate after Step 1 is confirmed stable. Apply only if vendored SDL is not pla
 1. Build the Editor (or any SystemUI host app).
 2. Open an ImGui window (e.g. the Scene hierarchy panel).
 3. **Drag test:** Click the ImGui window titlebar and drag. The window must follow the cursor with no initial jump.
-4. **Resize-cursor test:** Move the cursor toward the top edge of an ImGui window from outside. The resize cursor (`SDL_SYSTEM_CURSOR_SIZENS`) must appear at the actual visual edge, not ~20 px above it.
+4. **Resize-cursor test:** Move the cursor toward the top edge of an ImGui window from outside. The resize cursor (`SDL_SYSTEM_CURSOR_SIZENS`) must appear at the actual visual edge, not ~39 px above it.
 5. Repeat steps 3–4 after undocking a panel into a floating window.
 
 ### Automated — regression guard for coordinate offset
