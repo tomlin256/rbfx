@@ -254,12 +254,7 @@ static Uint32 s_moveHack;
 
 static void ConvertNSRect(NSScreen *screen, BOOL fullscreen, NSRect *r)
 {
-    CGFloat logicalH = [screen frame].size.height;
-    CGFloat physicalH = (CGFloat)CGDisplayPixelsHigh(kCGDirectMainDisplay);
-    SDL_Log("ConvertNSRect: screen logical H=%.1f  physical H=%.1f  in_y=%.1f  in_h=%.1f",
-            logicalH, physicalH, r->origin.y, r->size.height);
-    r->origin.y = logicalH - r->origin.y - r->size.height;
-    SDL_Log("ConvertNSRect: out_y=%.1f", r->origin.y);
+    r->origin.y = (CGFloat)[screen frame].size.height - r->origin.y - r->size.height;
 }
 
 static void
