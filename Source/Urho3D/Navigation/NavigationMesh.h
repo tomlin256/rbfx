@@ -152,12 +152,14 @@ public:
     /// Allocate the navigation mesh without building any tiles. Return true if successful.
     bool Allocate();
     /// Rebuild part of the navigation mesh contained by the world-space bounding box. Return true if successful.
-    bool BuildTilesInRegion(const BoundingBox& boundingBox);
+    bool BuildTilesInRegion(const BoundingBox& boundingBox, const NavigationGeometryInfoVector* geometryList = nullptr);
     /// Rebuild part of the navigation mesh in the rectangular area. Return true if successful.
-    bool BuildTiles(const IntVector2& from, const IntVector2& to);
+    bool BuildTiles(
+        const IntVector2& from, const IntVector2& to, const NavigationGeometryInfoVector* geometryList = nullptr);
     /// Rebuild part of the navigation mesh in the rectangular area. Task may be completed asynchronously.
     /// Callback is invoked for each tile in range.
-    void BuildTilesAsync(const IntVector2& from, const IntVector2& to, const OnAsyncTileBuildCompleted& callback = {});
+    void BuildTilesAsync(const IntVector2& from, const IntVector2& to,
+        const NavigationGeometryInfoVector* geometryList = nullptr, const OnAsyncTileBuildCompleted& callback = {});
     /// Cancel asynchronous tile build, if any.
     void CancelTileBuild(const IntVector2& tileIndex);
     /// Rebuild the navigation mesh allocating sufficient maximum number of tiles. Return true if successful.
@@ -350,7 +352,7 @@ protected:
     virtual TileBuilderFunction GetTileBuilder() const;
     /// Collect data for tile building.
     virtual NavBuildDataPtr CreateTileBuildData(
-        const ea::vector<NavigationGeometryInfo>& geometryList, const IntVector2& tileIndex) const;
+        const NavigationGeometryInfoVector& geometryList, const IntVector2& tileIndex) const;
     /// Replace tile data in navigation mesh.
     virtual bool ReplaceTileData(NavBuildData& build);
     /// Offset geometry of all tiles by a given offset.
@@ -358,9 +360,9 @@ protected:
 
     /// Build mesh tiles from the geometry data. Return number of tiles built.
     unsigned BuildTilesFromGeometry(
-        ea::vector<NavigationGeometryInfo>& geometryList, const IntVector2& from, const IntVector2& to);
+        const NavigationGeometryInfoVector& geometryList, const IntVector2& from, const IntVector2& to);
     /// Schedule mesh tile building.
-    void BuildTilesFromGeometryAsync(ea::vector<NavigationGeometryInfo>& geometryList, const IntVector2& from,
+    void BuildTilesFromGeometryAsync(const NavigationGeometryInfoVector& geometryList, const IntVector2& from,
         const IntVector2& to, const OnAsyncTileBuildCompleted& callback);
     /// Complete mesh tile building.
     void CompleteAsyncTileBuild(const NavBuildDataPtr& build);
@@ -371,14 +373,14 @@ protected:
     void SendTileAddedEvent(const IntVector2& tileIndex);
 
     /// Collect geometry from under Navigable components.
-    void CollectGeometries(ea::vector<NavigationGeometryInfo>& geometryList);
+    void CollectGeometries(NavigationGeometryInfoVector& geometryList);
     /// Visit nodes and collect navigable geometry.
-    void CollectGeometries(ea::vector<NavigationGeometryInfo>& geometryList, Navigable* navigable, Node* node,
+    void CollectGeometries(NavigationGeometryInfoVector& geometryList, Navigable* navigable, Node* node,
         ea::hash_set<Node*>& processedNodes, bool recursive);
 
     /// Initialize navigation build data from component configuration.
     void InitializeBuildData(
-        NavBuildData& build, const IntVector2& tileIndex, const ea::vector<NavigationGeometryInfo>& geometryList) const;
+        NavBuildData& build, const IntVector2& tileIndex, const NavigationGeometryInfoVector& geometryList) const;
     /// Ensure that the navigation mesh query is initialized. Return true if successful.
     bool InitializeQuery();
     /// Release the navigation mesh and the query.
@@ -389,7 +391,7 @@ protected:
 
     /// Get geometry data within a bounding box.
     static void CollectTileGeometry(NavBuildData& build, const Matrix3x4& rootTransform,
-        const ea::vector<NavigationGeometryInfo>& geometryList, const BoundingBox& box);
+        const NavigationGeometryInfoVector& geometryList, const BoundingBox& box);
     /// Add a triangle mesh to the geometry data.
     static void AddTriMeshGeometry(
         NavBuildData& build, Geometry* geometry, const Matrix3x4& transform, unsigned char areaId);

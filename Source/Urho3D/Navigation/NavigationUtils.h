@@ -7,7 +7,6 @@
 #include "Urho3D/IO/Deserializer.h"
 #include "Urho3D/IO/Serializer.h"
 #include "Urho3D/Math/BoundingBox.h"
-#include "Urho3D/Math/Matrix3x4.h"
 #include "Urho3D/Navigation/NavBuildData.h"
 #include "Urho3D/Navigation/NavigationDefs.h"
 
@@ -18,7 +17,9 @@
 namespace Urho3D
 {
 
-class Component;
+class NavArea;
+class Node;
+class OffMeshConnection;
 
 DetourAllocation ReadDetourBuffer(Deserializer& source);
 void WriteDetourBuffer(Serializer& dest, const DetourAllocation& buffer);
@@ -28,28 +29,12 @@ void WriteDetourBuffer(Serializer& dest, const ConstByteSpan& buffer);
 /// Calculate tile offset.
 ea::optional<ea::pair<IntVector2, int>> CalculateTileOffset(const IntVector3& delta, int tileSize, float cellSize);
 
-/// Description of a navigation mesh geometry component, with transform and bounds information.
-struct NavigationGeometryInfo
-{
-    /// Geometry component.
-    Component* component_{};
-    /// Geometry LOD level if applicable.
-    unsigned lodLevel_{};
-    /// Transform relative to the navigation mesh root node.
-    Matrix3x4 transform_;
-    /// Bounding box relative to the navigation mesh root node.
-    BoundingBox boundingBox_;
-    /// Area ID.
-    unsigned char areaId_{DeduceAreaId};
-};
-
 /// Calculate bounding box of given geometry.
-URHO3D_API BoundingBox CalculateBoundingBox(
-    const ea::vector<NavigationGeometryInfo>& geometryList, const Vector3& padding);
+URHO3D_API BoundingBox CalculateBoundingBox(const NavigationGeometryInfoVector& geometryList, const Vector3& padding);
 
 /// Calculate bounding box of given geometry within the given tile volume.
 URHO3D_API BoundingBox CalculateTileBoundingBox(
-    const ea::vector<NavigationGeometryInfo>& geometryList, const BoundingBox& tileColumn);
+    const NavigationGeometryInfoVector& geometryList, const BoundingBox& tileColumn);
 
 /// Calculate maximum number of tiles required to contain the given bounding box.
 URHO3D_API unsigned CalculateMaxTiles(const BoundingBox& boundingBox, int tileSize, float cellSize);
@@ -58,5 +43,17 @@ URHO3D_API unsigned CalculateMaxTiles(const BoundingBox& boundingBox, int tileSi
 /// @see rcMarkWalkableTriangles
 URHO3D_API void DeduceAreaIds(
     float walkableSlopeAngle, const float* vertices, const int* triangles, int numTriangles, unsigned char* areas);
+
+/// Append Node geometry to geometry list.
+URHO3D_API void AppendNavigationGeometry(NavigationGeometryInfoVector& geometryList, Node* node,
+    const Matrix3x4& inverseRootTransform, unsigned char areaId);
+
+/// Append off-mesh connection to geometry list.
+URHO3D_API void AppendOffMessConnection(NavigationGeometryInfoVector& geometryList,
+    OffMeshConnection* offMeshConnection, const Matrix3x4& inverseRootTransform);
+
+/// Append navigation area to geometry list.
+URHO3D_API void AppendNavArea(
+    NavigationGeometryInfoVector& geometryList, NavArea* navArea, const Matrix3x4& inverseRootTransform);
 
 } // namespace Urho3D
