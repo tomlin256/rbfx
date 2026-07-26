@@ -110,7 +110,60 @@ The Editor is built as a separate executable using the engine as a library. Key 
 
 ## Building on macOS (Command Line Tools only, no full Xcode)
 
-The presets in `CMakePresets.json` for macOS hardcode `"generator": "Xcode"` and cannot be used with a CLT-only install. `CMakeUserPresets.json` (not committed, gitignored) lets you define local presets that inherit from the project presets and override the generator. For example, inheriting from `macos-clang-arm64-lib` and setting `"generator": "Ninja Multi-Config"` gives you the full feature set with Ninja:
+There is no Xcode generator on this machine — Command Line Tools only — so **every build here uses Ninja**. The macOS presets in the committed `CMakePresets.json` hardcode `"generator": "Xcode"` and are unusable as-is.
+
+Local Ninja presets live in `/Users/rob/src/rbfx/CMakeUserPresets.json`. That file is **gitignored** (`.gitignore:137`), so it survives rebases but must be recreated by hand after a fresh clone.
+
+### The `local` preset — use this one
+
+This is the canonical setup for day-to-day work, and the tree that `~/src/lazersquad` links against:
+
+```json
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "local",
+      "displayName": "Local (macOS arm64, Debug, Ninja) — consumed by ~/src/lazersquad",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build-debug/install",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "BUILD_SHARED_LIBS": "OFF",
+        "URHO3D_ENABLE_ALL": "OFF",
+        "URHO3D_TOOLS": "ON",
+        "URHO3D_SYSTEMUI": "ON",
+        "URHO3D_RMLUI": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "local",
+      "configurePreset": "local"
+    }
+  ]
+}
+```
+
+```bash
+cmake --preset local                          # configure
+cmake --build --preset local                  # build
+cmake --install build-debug --config Debug    # install — downstream reads the install tree
+```
+
+Two deliberate differences from the committed presets:
+
+- **`URHO3D_SYSTEMUI=ON` and `URHO3D_RMLUI=ON`.** Downstream projects using ImGui or RmlUi need both. With them OFF, `Source/Urho3D/SystemUI/SystemUI.cpp` is not compiled at all — so any local engine patch living in it silently disappears from the library, with no build error to tell you.
+- **`binaryDir` is `build-debug/`, not `build/`.** Everything below, and every downstream `CMAKE_PREFIX_PATH`, refers to `build-debug/`. A single-config Ninja build still nests outputs under a per-config subdirectory, hence `build-debug/lib/Debug/`.
+
+> Static libraries are re-`ranlib`ed on install, which rewrites the archive header timestamps. `cmake --install` therefore always reports `Installing:` rather than `Up-to-date:` for `libUrho3D.a`, and the built and installed copies never compare byte-identical. That is normal and is **not** a staleness signal — compare the objects inside, not the archives.
+
+### Alternative: inherit from a committed preset
+
+For the full upstream feature set rather than the trimmed `local` one, inherit and override only the generator:
 
 ```json
 {
@@ -131,18 +184,20 @@ The presets in `CMakePresets.json` for macOS hardcode `"generator": "Xcode"` and
 
 ### Using VSCode CMake Tools
 
-CMake Tools reads `CMakeUserPresets.json` automatically. Point it at your Ninja preset via `.vscode/settings.json`:
+CMake Tools reads `CMakeUserPresets.json` automatically. Point it at the `local` preset via `.vscode/settings.json`:
 
 ```json
 {
-  "cmake.configurePreset": "macos-ninja-arm64-lib",
-  "cmake.buildPreset": "macos-ninja-arm64-lib-debug"
+  "cmake.configurePreset": "local",
+  "cmake.buildPreset": "local"
 }
 ```
 
 If CMake Tools still tries to use the Xcode generator (stale cached state), run **CMake: Reset CMake Tools Extension State (For This Workspace)** from the command palette, then reconfigure.
 
 ### Manual command-line build
+
+Prefer `--preset local` above. These commands are the fallback when presets are unavailable; they reproduce the `local` preset exactly, and deliberately target the **same** `build-debug/` tree so a second, divergent build tree never appears.
 
 **Prerequisites:**
 
@@ -153,41 +208,47 @@ brew install ninja
 **Configure:**
 
 ```bash
-cmake -S . -B build \
+cmake -S . -B build-debug \
   -G Ninja \
   -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_INSTALL_PREFIX=$PWD/build-debug/install \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DBUILD_SHARED_LIBS=OFF \
   -DURHO3D_SAMPLES=OFF \
   -DURHO3D_TESTING=OFF \
   -DURHO3D_PACKAGING=OFF \
   -DURHO3D_ENABLE_ALL=OFF \
-  -DURHO3D_TOOLS=ON
+  -DURHO3D_TOOLS=ON \
+  -DURHO3D_SYSTEMUI=ON \
+  -DURHO3D_RMLUI=ON
 ```
 
 > `URHO3D_TOOLS=ON` is required — the install step exports a `Urho3DTools` target and CMake errors if it is absent.
+>
+> `URHO3D_ENABLE_ALL=OFF` switches SystemUI and RmlUi off, so both must be re-enabled explicitly. Omitting them builds a library with no `SystemUI.cpp` in it.
 
 **Build:**
 
 ```bash
-cmake --build build --parallel $(sysctl -n hw.logicalcpu)
+cmake --build build-debug --parallel $(sysctl -n hw.logicalcpu)
 ```
 
 **Install** (required before any downstream project can use rbfx):
 
 ```bash
-cmake --install build
+cmake --install build-debug --config Debug
 ```
 
-This populates `build/install/`. The build-tree config files are incomplete — `Modules/PlatformTag.cmake` is missing from the build tree and `find_package(Urho3D)` will fail unless you point at the install tree.
+This populates `build-debug/install/`. The build-tree config files are incomplete — `Modules/PlatformTag.cmake` is missing from the build tree and `find_package(Urho3D)` will fail unless you point at the install tree.
 
-**Outputs** (in `build/`):
+**Outputs** (in `build-debug/`):
 
 | Path | Description |
 |---|---|
-| `lib/RelWithDebInfo/libUrho3D.a` | Static engine library |
-| `bin/RelWithDebInfo/PackageTool` | Asset packager |
-| `bin/RelWithDebInfo/SpritePacker` | Sprite atlas tool |
-| `bin/RelWithDebInfo/RampGenerator` | Gradient ramp tool |
+| `lib/Debug/libUrho3D.a` | Static engine library |
+| `bin/Debug/PackageTool` | Asset packager |
+| `bin/Debug/SpritePacker` | Sprite atlas tool |
+| `bin/Debug/RampGenerator` | Gradient ramp tool |
 
 ---
 
@@ -196,8 +257,12 @@ This populates `build/install/`. The build-tree config files are incomplete — 
 Set `CMAKE_PREFIX_PATH` to the **install** tree, not the build tree:
 
 ```
-CMAKE_PREFIX_PATH = /path/to/rbfx/build/install
+CMAKE_PREFIX_PATH = /Users/rob/src/rbfx/build-debug/install
 ```
+
+This is exactly what `~/src/lazersquad/CMakeUserPresets.json` sets. Note the tree is `build-debug/`, not `build/` — earlier revisions of this document said `build/install`, which was wrong for any downstream project needing SystemUI or RmlUi.
+
+> **Rebuilding rbfx is not enough.** Downstream projects link the *install* tree, so a rebuild that is not followed by `cmake --install build-debug --config Debug` leaves them linking the previous library, with no warning. Rebuild → install → rebuild downstream, every time.
 
 The CMake config is installed at `<install>/share/Urho3D/CMake/` (not `share/CMake/Urho3D/`).
 
