@@ -85,9 +85,6 @@ gradle*
 /CMakeSettings.json
 /out/
 
-# VSCode project settings
-.vscode
-
 # CMake generated build files
 /cmake-build-*/
 CMakeCache.txt
