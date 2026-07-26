@@ -1,0 +1,11 @@
+{
+  // The macOS presets in CMakePresets.json hardcode the Xcode generator, which
+  // fails with a Command Line Tools-only install ("Xcode 1.5 not supported").
+  // Pin CMake Tools to the Ninja preset from CMakeUserPresets.json instead.
+  "cmake.useCMakePresets": "always",
+  "cmake.configurePreset": "local",
+  "cmake.buildPreset": "local",
+
+  // Fallback if CMake Tools ever drops back to kit mode — never pick Xcode.
+  "cmake.generator": "Ninja"
+}
