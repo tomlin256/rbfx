@@ -6,6 +6,12 @@ on:
       - 'skip-ci-**'
   pull_request:
   workflow_dispatch:
+    inputs:
+      full_build:
+        description: 'Run full build'
+        required: false
+        default: false
+        type: boolean
 
 env:
   # common settings
@@ -15,7 +21,7 @@ env:
   URHO3D_PROFILING_FALLBACK: ON
   URHO3D_PRISTINE_FULL_BUILDS: ON
   DOTNET_VERSION: '8.0'
-  CMAKE_VERSION: 3.25.x
+  CMAKE_VERSION: 4.3.x
   # ccache configuration
   ccache_prefix: ${{ secrets.CACHE_VERSION }}-master
   CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -187,7 +193,7 @@ jobs:
 
       - name: Download release SDK
         id: cached_sdk
-        if: ${{ !contains(github.event.head_commit.message, '#full-build') }}
+        if: ${{ !contains(github.event.head_commit.message, '#full-build') && !(github.event_name == 'workflow_dispatch' && github.event.inputs.full_build == 'true') }}
         continue-on-error: true
         run: |
           if ${{ env.ci_build_script }} download-release -- \

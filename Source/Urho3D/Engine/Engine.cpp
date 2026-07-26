@@ -356,7 +356,14 @@ bool Engine::Initialize(const StringVariantMap& applicationParameters, const Str
         log->SetQuiet(GetParameter(EP_LOG_QUIET).GetBool());
         const ea::string logFileName = GetLogFileName(GetParameter(EP_LOG_NAME).GetString());
         if (!logFileName.empty())
-            log->Open(logFileName);
+        {
+            LogFileParams params;
+            params.rotateOnOpen_ = GetParameter(EP_LOG_ROTATE_ON_OPEN).GetBool();
+            params.rotateBySize_ = GetParameter(EP_LOG_ROTATE_BY_SIZE).GetBool();
+            params.maxFiles_ = GetParameter(EP_LOG_MAX_FILES).GetUInt();
+            params.maxSize_ = GetParameter(EP_LOG_MAX_SIZE).GetUInt();
+            log->Open(logFileName, params);
+        }
     }
 
     // Initialize app preferences directory
@@ -625,6 +632,7 @@ void Engine::InitializeVirtualFileSystem(bool enableResourceRootFile)
     vfs->MountAliasRoot();
     vfs->MountRoot();
 
+    const unsigned numMountPoints = vfs->NumMountPoints();
     if (!resourceRootEntries.empty() && enableResourceRootFile)
     {
         for (const ResourceRootEntry& entry : resourceRootEntries)
@@ -662,6 +670,8 @@ void Engine::InitializeVirtualFileSystem(bool enableResourceRootFile)
             }
         }
     }
+    if (numMountPoints == vfs->NumMountPoints())
+        URHO3D_LOGERROR("No resource directories or packages were mounted");
 
 #ifndef __EMSCRIPTEN__
     vfs->MountDir("conf", GetAppPreferencesDir());
@@ -689,6 +699,10 @@ void Engine::RunFrame()
     auto* time = GetSubsystem<Time>();
     auto* input = GetSubsystem<Input>();
     auto* audio = GetSubsystem<Audio>();
+    auto* workQueue = GetSubsystem<WorkQueue>();
+
+    // Process WorkQueue tasks between frames
+    workQueue->Update();
 
     {
         URHO3D_PROFILE("DoFrame");
@@ -1173,6 +1187,10 @@ void Engine::DefineParameters(CLI::App& commandLine, StringVariantMap& enginePar
         return true;
     })->type_name(createOptions("string in {%s}", logLevelNames).c_str())->type_size(1);
     addOptionString("--log-file", EP_LOG_NAME, "Log output file");
+    addFlag("--no-log-rotate-on-open", EP_LOG_ROTATE_ON_OPEN, false, "Disable log rotation on log open");
+    addFlag("--log-rotate-by-size", EP_LOG_ROTATE_BY_SIZE, true, "Rotate log file by size");
+    addOptionInt("--log-rotate-max-files", EP_LOG_MAX_FILES, "Maximum number of log files to keep");
+    addOptionInt("--log-rotate-max-size", EP_LOG_MAX_SIZE, "Maximum log file size in bytes");
     addOptionInt("-x,--width", EP_WINDOW_WIDTH, "Window width");
     addOptionInt("-y,--height", EP_WINDOW_HEIGHT, "Window height");
     addOptionInt("--monitor", EP_MONITOR, "Create window on the specified monitor");
@@ -1294,6 +1312,10 @@ void Engine::PopulateDefaultParameters()
     engineParameters_->DefineVariable(EP_LOG_LEVEL, LOG_TRACE).CommandLinePriority();
     engineParameters_->DefineVariable(EP_LOG_NAME, "conf://Urho3D.log").CommandLinePriority();
     engineParameters_->DefineVariable(EP_LOG_QUIET, false).CommandLinePriority();
+    engineParameters_->DefineVariable(EP_LOG_ROTATE_ON_OPEN, LogFileParams{}.rotateOnOpen_).CommandLinePriority();
+    engineParameters_->DefineVariable(EP_LOG_ROTATE_BY_SIZE, LogFileParams{}.rotateBySize_).CommandLinePriority();
+    engineParameters_->DefineVariable(EP_LOG_MAX_FILES, LogFileParams{}.maxFiles_).CommandLinePriority();
+    engineParameters_->DefineVariable(EP_LOG_MAX_SIZE, LogFileParams{}.maxSize_).CommandLinePriority();
     engineParameters_->DefineVariable(EP_MAIN_PLUGIN, EMPTY_STRING);
     engineParameters_->DefineVariable(EP_MONITOR, 0).Overridable();
     engineParameters_->DefineVariable(EP_MULTI_SAMPLE, 1);
